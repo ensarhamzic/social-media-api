@@ -2,7 +2,7 @@
 
 namespace SocialMediaAPI.Data.ViewModels
 {
-    public class UserRegisterVM
+    public class UserRegisterVM : IValidatableObject
     {
         [Required]
         public string FirstName { get; set; } = string.Empty;
@@ -20,5 +20,13 @@ namespace SocialMediaAPI.Data.ViewModels
         [MinLength(8)]
         public string ConfirmPassword { get; set; } = string.Empty;
         public string? PictureURL { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (Password != ConfirmPassword)
+            {
+                yield return new ValidationResult("Passwords don't match");
+            }
+        }
     }
 }
