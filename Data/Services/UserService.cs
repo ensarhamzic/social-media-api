@@ -1,5 +1,8 @@
-﻿using SocialMediaAPI.Data.Models;
+﻿using Microsoft.IdentityModel.Tokens;
+using SocialMediaAPI.Data.Models;
 using SocialMediaAPI.Data.ViewModels;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 
 namespace SocialMediaAPI.Data.Services
@@ -7,15 +10,17 @@ namespace SocialMediaAPI.Data.Services
     public class UserService
     {
         private AppDbContext dbContext;
-        public UserService(AppDbContext dbContext)
+        private IConfiguration configuration;
+        public UserService(AppDbContext dbContext, IConfiguration configuration)
         {
             this.dbContext = dbContext;
+            this.configuration = configuration;
         }
 
         public string Register(UserRegisterVM request)
         {
-            bool userExists = dbContext.Users.Any(u => u.Email == request.Email || u.Username == request.Username );
-            if(userExists)
+            bool userExists = dbContext.Users.Any(u => u.Email == request.Email || u.Username == request.Username);
+            if (userExists)
             {
                 throw new Exception("User already exists");
             }
@@ -32,20 +37,19 @@ namespace SocialMediaAPI.Data.Services
             dbContext.Users.Add(newUser);
             dbContext.SaveChanges();
 
-
-            return "token";
+            return CreateToken(newUser);
         }
 
         public string Login(UserLoginVM request)
         {
             var user = dbContext.Users.FirstOrDefault(u => u.Username == request.Username);
             var failedResponse = "Check your credentials and try again!";
-            if(user == null)
+            if (user == null)
                 throw new Exception(failedResponse);
             var isPasswordCorrect = VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt);
             if (!isPasswordCorrect)
                 throw new Exception(failedResponse);
-            return "token";
+            return CreateToken(user);
         }
 
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
@@ -64,6 +68,29 @@ namespace SocialMediaAPI.Data.Services
                 var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
                 return computedHash.SequenceEqual(passwordHash);
             }
+        }
+
+        private string CreateToken(User user)
+        {
+            List<Claim> claims = new List<Claim>()
+            {
+                new Claim(ClaimTypes.PrimarySid, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username)
+            };
+
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.
+                GetBytes(configuration.GetSection("AppSettings:Token").Value));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: creds
+                );
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return jwt;
         }
     }
 }
