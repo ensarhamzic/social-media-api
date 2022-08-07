@@ -15,5 +15,33 @@ namespace SocialMediaAPI.Controllers
             this.userService = userService;
         }
 
+        [HttpPost("register")]
+        public IActionResult Register([FromBody] UserRegisterVM request)
+        {
+            try
+            {
+                var token = userService.Register(request);
+                var response = new { token };
+                return Created(nameof(response), response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("login")]
+        public IActionResult Login([FromBody] UserLoginVM request)
+        {
+            try
+            {
+                var token = userService.Login(request);
+                return Ok(new { token });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }
