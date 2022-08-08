@@ -8,6 +8,7 @@ namespace SocialMediaAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class PostsController : ControllerBase
     {
         private PostService postService;
@@ -17,7 +18,7 @@ namespace SocialMediaAPI.Controllers
             this.postService = postService;
         }
 
-        [HttpPost, Authorize]
+        [HttpPost]
         public IActionResult CreatePost([FromBody] PostVM request)
         {
             try
@@ -31,7 +32,7 @@ namespace SocialMediaAPI.Controllers
             }
         }
 
-        [HttpPut("{id}"), Authorize]
+        [HttpPut("{id}")]
         public IActionResult UpdatePost(string id, [FromBody] PostVM request)
         {
             try
@@ -45,7 +46,7 @@ namespace SocialMediaAPI.Controllers
             }
         }
 
-        [HttpDelete("{id}"), Authorize]
+        [HttpDelete("{id}")]
         public IActionResult DeletePost(string id)
         {
             try
@@ -59,12 +60,40 @@ namespace SocialMediaAPI.Controllers
             }
         }
 
-        [HttpPost("{id}/like"), Authorize]
+        [HttpPost("{id}/likes")]
         public IActionResult LikeOrUnlikePost(string id)
         {
             try
             {
                 var response = postService.LikeOrUnlikePost(id);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("{id}/comments")]
+        public IActionResult CommentPost(string id, [FromBody] CommentVM request)
+        {
+            try
+            {
+                var comment = postService.CommentPost(id, request);
+                return Ok(comment);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{postId}/comments/{commentId}")]
+        public IActionResult DeletePostComment(string postId, string commentId)
+        {
+            try
+            {
+                var response = postService.DeletePostComment(postId, commentId);
                 return Ok(response);
             }
             catch (Exception ex)
