@@ -11,10 +11,14 @@ namespace SocialMediaAPI.Data.Services
     {
         private AppDbContext dbContext;
         private IConfiguration configuration;
-        public UserService(AppDbContext dbContext, IConfiguration configuration)
+        private IHttpContextAccessor httpContextAccessor;
+        public UserService(AppDbContext dbContext,
+            IConfiguration configuration,
+            IHttpContextAccessor httpContextAccessor)
         {
             this.dbContext = dbContext;
             this.configuration = configuration;
+            this.httpContextAccessor = httpContextAccessor;
         }
 
         public string Register(UserRegisterVM request)
