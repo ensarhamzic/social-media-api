@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SocialMediaAPI.Data.Services;
 using SocialMediaAPI.Data.ViewModels;
@@ -43,5 +44,12 @@ namespace SocialMediaAPI.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpPost("verify"), Authorize]
+        public IActionResult VerifyToken()
+        {
+            return Ok(new {success = "Token is valid"});
+        }
+
     }
 }
