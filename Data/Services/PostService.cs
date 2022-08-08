@@ -72,6 +72,53 @@ namespace SocialMediaAPI.Data.Services
             throw new Exception(errorMessage);
         }
 
+        public Comment CommentPost(string postStringId, CommentVM request)
+        {
+            CheckId(postStringId, out int postId, out bool isValid);
+            if (isValid)
+            {
+                var foundPost = dbContext.Posts.FirstOrDefault(p => p.Id == postId);
+                if(foundPost != null)
+                {
+                    var newComment = new Comment()
+                    {
+                        Text = request.Text,
+                        PostId = postId,
+                        UserId = GetAuthUserId()
+                    };
+                    dbContext.Comments.Add(newComment);
+                    dbContext.SaveChanges();
+                    return newComment;
+                }
+            }
+            throw new Exception($"Post with id of {postStringId} does not exist");
+        }
+
+        public object DeletePostComment(string postStringId, string commentStringId)
+        {
+            CheckId(postStringId, out int postId, out bool isPostIdValid);
+            CheckId(commentStringId, out int commentId, out bool isCommentIdValid);
+            if(isPostIdValid && isCommentIdValid)
+            {
+                var foundPost = dbContext.Posts.FirstOrDefault(p => p.Id == postId);
+                if(foundPost != null)
+                {
+                    var foundComment = dbContext.Comments.FirstOrDefault(c => c.Id == commentId);
+                    if(foundComment != null)
+                    {
+                        if((UserHasPermission(foundComment.UserId) || UserHasPermission(foundPost.UserId))
+                            && foundComment.PostId == postId)
+                        {
+                            dbContext.Comments.Remove(foundComment);
+                            dbContext.SaveChanges();
+                            return new { success = "successfully deleted comment!" };
+                        }
+                    }
+                }
+            }
+            throw new Exception($"Cannot find that comment or that post, or you do not have rights to delete this comment");
+        }
+
         public object LikeOrUnlikePost(string postStringId)
         {
             CheckId(postStringId, out int postId, out bool isValid);
