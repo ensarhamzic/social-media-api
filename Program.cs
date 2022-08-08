@@ -30,7 +30,10 @@ builder.Services.AddCors(c =>
     c.AddPolicy("AllowOrigin", options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 builder.Services.AddDbContext<AppDbContext>();
+
 builder.Services.AddTransient<UserService>();
+builder.Services.AddTransient<PostService>();
+
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
