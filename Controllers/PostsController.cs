@@ -58,5 +58,19 @@ namespace SocialMediaAPI.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpPost("{id}/like"), Authorize]
+        public IActionResult LikeOrUnlikePost(string id)
+        {
+            try
+            {
+                var response = postService.LikeOrUnlikePost(id);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }
