@@ -30,5 +30,33 @@ namespace SocialMediaAPI.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpPut("{id}"), Authorize]
+        public IActionResult UpdatePost(string id, [FromBody] PostVM request)
+        {
+            try
+            {
+                var updatedPost = postService.UpdatePost(id, request);
+                return Ok(updatedPost);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{id}"), Authorize]
+        public IActionResult DeletePost(string id)
+        {
+            try
+            {
+                var response = postService.DeletePost(id);
+                return Ok(new {success = response});
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }
