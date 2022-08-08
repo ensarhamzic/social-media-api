@@ -46,7 +46,7 @@ namespace SocialMediaAPI.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Comments");
+                    b.ToTable("Comments", (string)null);
                 });
 
             modelBuilder.Entity("SocialMediaAPI.Data.Models.Follow", b =>
@@ -70,7 +70,7 @@ namespace SocialMediaAPI.Migrations
                     b.HasIndex("UserId", "FollowingId")
                         .IsUnique();
 
-                    b.ToTable("Follows");
+                    b.ToTable("Follows", (string)null);
                 });
 
             modelBuilder.Entity("SocialMediaAPI.Data.Models.Like", b =>
@@ -94,7 +94,7 @@ namespace SocialMediaAPI.Migrations
                     b.HasIndex("UserId", "PostId")
                         .IsUnique();
 
-                    b.ToTable("Likes");
+                    b.ToTable("Likes", (string)null);
                 });
 
             modelBuilder.Entity("SocialMediaAPI.Data.Models.Post", b =>
@@ -116,7 +116,7 @@ namespace SocialMediaAPI.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Posts");
+                    b.ToTable("Posts", (string)null);
                 });
 
             modelBuilder.Entity("SocialMediaAPI.Data.Models.User", b =>
@@ -162,7 +162,7 @@ namespace SocialMediaAPI.Migrations
                     b.HasAlternateKey("Username")
                         .HasName("user_username_unique");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("SocialMediaAPI.Data.Models.Comment", b =>
