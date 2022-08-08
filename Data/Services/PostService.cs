@@ -72,6 +72,35 @@ namespace SocialMediaAPI.Data.Services
             throw new Exception(errorMessage);
         }
 
+        public object LikeOrUnlikePost(string postStringId)
+        {
+            CheckId(postStringId, out int postId, out bool isValid);
+            if (isValid)
+            {
+                var userId = GetAuthUserId();
+                var foundLike = dbContext.Likes.FirstOrDefault
+                    (l => l.UserId == userId && l.PostId == postId);
+                if (foundLike != null)
+                {
+                    dbContext.Likes.Remove(foundLike);
+                    dbContext.SaveChanges();
+                    return new { success = "successfully unliked post" };
+                }
+                else
+                {
+                    var newLike = new Like()
+                    {
+                        UserId = userId,
+                        PostId = postId,
+                    };
+                    dbContext.Likes.Add(newLike);
+                    dbContext.SaveChanges();
+                    return new { success = "successfully liked post" };
+                }
+            }
+            throw new Exception($"Post with id of {postStringId} does not exist");
+        }
+
         private void CheckId(string stringId, out int id, out bool isValid)
         {
             bool valid = int.TryParse(stringId, out int convertedId);
