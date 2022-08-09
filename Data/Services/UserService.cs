@@ -1,4 +1,6 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SocialMediaAPI.Data.Models;
 using SocialMediaAPI.Data.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
@@ -11,12 +13,14 @@ namespace SocialMediaAPI.Data.Services
     {
         private AppDbContext dbContext;
         private IConfiguration configuration;
-        
+        private IHttpContextAccessor httpContextAccessor;
         public UserService(AppDbContext dbContext,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IHttpContextAccessor httpContextAccessor)
         {
             this.dbContext = dbContext;
             this.configuration = configuration;
+            this.httpContextAccessor = httpContextAccessor;
         }
 
         public string Register(UserRegisterVM request)
@@ -52,6 +56,52 @@ namespace SocialMediaAPI.Data.Services
             if (!isPasswordCorrect)
                 throw new Exception(failedResponse);
             return CreateToken(user);
+        }
+
+        public User UserTest()
+        {
+            var user = dbContext.Users
+                .Include(u => u.Followers).ThenInclude(f => f.User)
+                .Include(u => u.Following).ThenInclude(f => f.Following)
+                .FirstOrDefault(u => u.Id == 14);
+            return user;
+
+        }
+
+        public string FollowOrUnfollowUser(string stringId)
+        {
+            CheckId(stringId, out int id, out bool isValid);
+            if (isValid)
+            {
+                var userId = GetAuthUserId();
+                if(userId == id)
+                    throw new Exception("Cannot follow/unfollow yourself");
+                var foundUser = dbContext.Users.FirstOrDefault(u => u.Id == id);
+                if(foundUser == null)
+                {
+                    throw new Exception($"User with id of {stringId} is not found");
+                }
+                var foundFollow = dbContext.Follows
+                    .FirstOrDefault(f => f.UserId == userId && f.FollowingId == id);
+                if (foundFollow != null)
+                {
+                    dbContext.Follows.Remove(foundFollow);
+                    dbContext.SaveChanges();
+                    return "User unfollowed";
+                }
+                else
+                {
+                    var newFollow = new Follow()
+                    {
+                        UserId = userId,
+                        FollowingId = id
+                    };
+                    dbContext.Follows.Add(newFollow);
+                    dbContext.SaveChanges();
+                    return "User followed";
+                }
+            }
+            throw new Exception($"User with id of {stringId} is not found");
         }
 
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
@@ -93,6 +143,18 @@ namespace SocialMediaAPI.Data.Services
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
 
             return jwt;
+        }
+
+        private void CheckId(string stringId, out int id, out bool isValid)
+        {
+            bool valid = int.TryParse(stringId, out int convertedId);
+            isValid = valid;
+            id = convertedId;
+        }
+
+        private int GetAuthUserId()
+        {
+            return int.Parse(httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.PrimarySid));
         }
     }
 }
