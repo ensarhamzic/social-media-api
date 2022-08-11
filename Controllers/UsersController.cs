@@ -21,8 +21,7 @@ namespace SocialMediaAPI.Controllers
         {
             try
             {
-                var token = userService.Register(request);
-                var response = new { token };
+                var response = userService.Register(request);
                 return Created(nameof(response), response);
             }
             catch (Exception ex)
@@ -36,8 +35,8 @@ namespace SocialMediaAPI.Controllers
         {
             try
             {
-                var token = userService.Login(request);
-                return Ok(new { token });
+                var response = userService.Login(request);
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -64,10 +63,19 @@ namespace SocialMediaAPI.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-        [HttpGet("test")]
-        public IActionResult UserTest()
+
+        [HttpGet("{id}/posts"), Authorize]
+        public IActionResult GetUserWithPosts(string id)
         {
-            return Ok(userService.UserTest());
+            try
+            {
+                var userWithPosts = userService.GetUserWithPosts(id);
+                return Ok(userWithPosts);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }
