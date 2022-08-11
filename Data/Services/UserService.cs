@@ -47,6 +47,13 @@ namespace SocialMediaAPI.Data.Services
             return new { user = newUser, token};
         }
 
+        public User GetAuthUserData()
+        {
+            var userId = GetAuthUserId();
+            var user = dbContext.Users.FirstOrDefault(u => u.Id == userId);
+            return user;
+        }
+
         public object Login(UserLoginVM request)
         {
             var user = dbContext.Users.FirstOrDefault(u => u.Username == request.Username);
