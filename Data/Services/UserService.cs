@@ -23,7 +23,7 @@ namespace SocialMediaAPI.Data.Services
             this.httpContextAccessor = httpContextAccessor;
         }
 
-        public string Register(UserRegisterVM request)
+        public object Register(UserRegisterVM request)
         {
             bool userExists = dbContext.Users.Any(u => u.Email == request.Email || u.Username == request.Username);
             if (userExists)
@@ -43,10 +43,11 @@ namespace SocialMediaAPI.Data.Services
             dbContext.Users.Add(newUser);
             dbContext.SaveChanges();
 
-            return CreateToken(newUser);
+            string token = CreateToken(newUser);
+            return new { user = newUser, token};
         }
 
-        public string Login(UserLoginVM request)
+        public object Login(UserLoginVM request)
         {
             var user = dbContext.Users.FirstOrDefault(u => u.Username == request.Username);
             var failedResponse = "Check your credentials and try again!";
@@ -55,17 +56,32 @@ namespace SocialMediaAPI.Data.Services
             var isPasswordCorrect = VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt);
             if (!isPasswordCorrect)
                 throw new Exception(failedResponse);
-            return CreateToken(user);
+            string token = CreateToken(user);
+            return new { user, token };
         }
 
-        public User UserTest()
+        public User GetUserWithPosts(string stringId)
         {
-            var user = dbContext.Users
-                .Include(u => u.Followers).ThenInclude(f => f.User)
-                .Include(u => u.Following).ThenInclude(f => f.Following)
-                .FirstOrDefault(u => u.Id == 14);
-            return user;
+            CheckId(stringId, out int id, out bool isValid);
+            if (isValid)
+            {
+                var userWithPosts = dbContext.Users
+                    .Include(u => u.Posts).FirstOrDefault(u => u.Id == id);
 
+                if (userWithPosts != null)
+                {
+                    var userId = GetAuthUserId();
+                    var follow = dbContext.Follows
+                    .FirstOrDefault(f => f.UserId == userId
+                    && f.FollowingId == userWithPosts.Id);
+                    if (follow != null || userWithPosts.Id == userId)
+                        return userWithPosts;
+                    else
+                        throw new Exception("You don't follow that user");
+                }
+
+            }
+            throw new Exception("User not found");
         }
 
         public string FollowOrUnfollowUser(string stringId)
@@ -74,10 +90,10 @@ namespace SocialMediaAPI.Data.Services
             if (isValid)
             {
                 var userId = GetAuthUserId();
-                if(userId == id)
+                if (userId == id)
                     throw new Exception("Cannot follow/unfollow yourself");
                 var foundUser = dbContext.Users.FirstOrDefault(u => u.Id == id);
-                if(foundUser == null)
+                if (foundUser == null)
                 {
                     throw new Exception($"User with id of {stringId} is not found");
                 }
