@@ -47,7 +47,15 @@ namespace SocialMediaAPI.Controllers
         [HttpPost("verify"), Authorize]
         public IActionResult VerifyToken()
         {
-            return Ok(new { success = "Token is valid" });
+            try
+            {
+                var response = userService.GetAuthUserData();
+                return Ok(new { user = response });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost("{id}/follow"), Authorize]
