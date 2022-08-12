@@ -19,7 +19,8 @@ namespace SocialMediaAPI.Data.Services
             var post = new Post()
             {
                 Text = request.Text,
-                UserId = GetAuthUserId()
+                UserId = GetAuthUserId(),
+                Date = DateTime.Now
             };
             dbContext.Posts.Add(post);
             dbContext.SaveChanges();
