@@ -75,6 +75,8 @@ namespace SocialMediaAPI.Data.Services
                 var userWithPosts = dbContext.Users
                     .Include(u => u.Posts).ThenInclude(p => p.Comments).ThenInclude(c => c.User)
                     .Include(u => u.Posts).ThenInclude(p => p.Likes).ThenInclude(l => l.User)
+                    .Include(u => u.Followers).ThenInclude(f => f.User)
+                    .Include(u => u.Following).ThenInclude(f => f.Following)
                     .FirstOrDefault(u => u.Id == id);
 
                 if (userWithPosts != null)
