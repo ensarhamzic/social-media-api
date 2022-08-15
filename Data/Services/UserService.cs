@@ -44,7 +44,7 @@ namespace SocialMediaAPI.Data.Services
             dbContext.SaveChanges();
 
             string token = CreateToken(newUser);
-            return new { user = newUser, token};
+            return new { user = newUser, token };
         }
 
         public User GetAuthUserData()
@@ -81,14 +81,7 @@ namespace SocialMediaAPI.Data.Services
 
                 if (userWithPosts != null)
                 {
-                    var userId = GetAuthUserId();
-                    var follow = dbContext.Follows
-                    .FirstOrDefault(f => f.UserId == userId
-                    && f.FollowingId == userWithPosts.Id);
-                    if (follow != null || userWithPosts.Id == userId)
-                        return userWithPosts;
-                    else
-                        throw new Exception("You don't follow that user");
+                    return userWithPosts;
                 }
 
             }
