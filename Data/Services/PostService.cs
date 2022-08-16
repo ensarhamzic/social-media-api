@@ -85,7 +85,8 @@ namespace SocialMediaAPI.Data.Services
                     {
                         Text = request.Text,
                         PostId = postId,
-                        UserId = GetAuthUserId()
+                        UserId = GetAuthUserId(),
+                        Date = DateTime.Now
                     };
                     dbContext.Comments.Add(newComment);
                     dbContext.SaveChanges();
