@@ -85,5 +85,19 @@ namespace SocialMediaAPI.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("feed"), Authorize]
+        public IActionResult GetUserFeed()
+        {
+            try
+            {
+                var userFeed = userService.GetUserFeed();
+                return Ok(userFeed);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

@@ -88,6 +88,38 @@ namespace SocialMediaAPI.Data.Services
             throw new Exception("User not found");
         }
 
+        public object GetUserFeed()
+        {
+            var userId = GetAuthUserId();
+            var userData = dbContext.Users
+                .Include(u => u.Following).ThenInclude(f => f.Following).ThenInclude(f => f.Posts).ThenInclude(p => p.Comments)
+                .Include(u => u.Following).ThenInclude(f => f.Following).ThenInclude(f => f.Posts).ThenInclude(p => p.Likes)
+                .FirstOrDefault(u => u.Id == userId);
+            var feed = new List<object>();
+            foreach (var follow in userData.Following)
+            {
+                foreach (var post in follow.Following.Posts)
+                {
+                    feed.Add(new
+                    {
+                        user = new
+                        {
+                            id = follow.Following.Id,
+                            username = follow.Following.Username,
+                            pictureURL = follow.Following.PictureURL,
+                        },
+
+                        id = post.Id,
+                        text = post.Text,
+                        comments = post.Comments,
+                        likes = post.Likes,
+                        date = post.Date
+                    });
+                }
+            }
+            return feed;
+        }
+
         public string FollowOrUnfollowUser(string stringId)
         {
             CheckId(stringId, out int id, out bool isValid);
@@ -176,5 +208,7 @@ namespace SocialMediaAPI.Data.Services
         {
             return int.Parse(httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.PrimarySid));
         }
+
+
     }
 }
