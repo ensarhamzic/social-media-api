@@ -20,12 +20,10 @@ namespace SocialMediaAPI.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>()
-                .HasAlternateKey(u => u.Email)
-                .HasName("user_email_unique");
+                .HasIndex(u => u.Email).IsUnique();
 
             modelBuilder.Entity<User>()
-                .HasAlternateKey(u => u.Username)
-                .HasName("user_username_unique");
+                .HasIndex(u => u.Username).IsUnique();
 
             modelBuilder.Entity<Post>()
                 .HasOne<User>(p => p.User)
