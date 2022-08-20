@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SocialMediaAPI.Data.Models;
@@ -14,6 +17,9 @@ namespace SocialMediaAPI.Data.Services
         private AppDbContext dbContext;
         private IConfiguration configuration;
         private IHttpContextAccessor httpContextAccessor;
+        private Account account;
+        private Cloudinary cloudinary;
+
         public UserService(AppDbContext dbContext,
             IConfiguration configuration,
             IHttpContextAccessor httpContextAccessor)
@@ -21,11 +27,17 @@ namespace SocialMediaAPI.Data.Services
             this.dbContext = dbContext;
             this.configuration = configuration;
             this.httpContextAccessor = httpContextAccessor;
+            account = new Account(
+                configuration.GetSection("Cloudinary:Cloud").Value,
+                configuration.GetSection("Cloudinary:ApiKey").Value,
+                configuration.GetSection("Cloudinary:ApiSecret").Value);
+            cloudinary = new Cloudinary(account);
         }
 
         public object Register(UserRegisterVM request)
         {
-            bool userExists = dbContext.Users.Any(u => u.Email == request.Email || u.Username == request.Username);
+            bool userExists = dbContext.Users
+                .Any(u => u.Email == request.Email || u.Username == request.Username);
             if (userExists)
             {
                 throw new Exception("User already exists");
@@ -47,12 +59,7 @@ namespace SocialMediaAPI.Data.Services
             return new { user = newUser, token };
         }
 
-        public User GetAuthUserData()
-        {
-            var userId = GetAuthUserId();
-            var user = dbContext.Users.FirstOrDefault(u => u.Id == userId);
-            return user;
-        }
+
 
         public object Login(UserLoginVM request)
         {
@@ -65,6 +72,62 @@ namespace SocialMediaAPI.Data.Services
                 throw new Exception(failedResponse);
             string token = CreateToken(user);
             return new { user, token };
+        }
+
+        public async Task<User> UpdateUserAsync(UserUpdateVM request)
+        {
+            var userId = GetAuthUserId();
+            var foundUserByUsername = dbContext.Users
+                .FirstOrDefault(u => u.Username == request.Username);
+
+            var foundUserByEmail = dbContext.Users
+                .FirstOrDefault(u => u.Email == request.Email);
+
+            var authUser = GetAuthUserData();
+
+            var canUpdateUsername = foundUserByUsername?.Id == null || (foundUserByUsername.Id == authUser.Id);
+            var canUpdateEmail = foundUserByEmail?.Id == null || (foundUserByEmail.Id == authUser.Id);
+            var canUpdate = canUpdateUsername && canUpdateEmail;
+
+            if (canUpdate && authUser != null)
+            {
+                authUser.FirstName = request.FirstName;
+                authUser.LastName = request.LastName;
+                authUser.Username = request.Username;
+                authUser.Email = request.Email;
+                if (!string.IsNullOrEmpty(request.Password))
+                {
+                    CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
+                    authUser.PasswordHash = passwordHash;
+                    authUser.PasswordSalt = passwordSalt;
+                }
+
+                if (request.ProfilePicture != null)
+                {
+                    var filePath = Path.GetTempFileName();
+
+                    using (var stream = File.Create(filePath))
+                    {
+                        await request.ProfilePicture.CopyToAsync(stream);
+                    }
+                    var uploadParams = new ImageUploadParams()
+                    {
+                        File = new FileDescription(filePath),
+                        PublicId = $"profile-pictures/{Guid.NewGuid()}",
+                    };
+                    var uploadResult = cloudinary.Upload(uploadParams);
+                    authUser.PictureURL = uploadResult.Url.ToString();
+                }
+
+                dbContext.SaveChanges();
+            }
+            else
+            {
+                throw new Exception("User already exists");
+            }
+
+
+            return authUser;
         }
 
         public User GetUserWithPosts(string stringId)
@@ -209,6 +272,12 @@ namespace SocialMediaAPI.Data.Services
             return int.Parse(httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.PrimarySid));
         }
 
+        public User GetAuthUserData()
+        {
+            var userId = GetAuthUserId();
+            var user = dbContext.Users.FirstOrDefault(u => u.Id == userId);
+            return user;
+        }
 
     }
 }

@@ -44,6 +44,20 @@ namespace SocialMediaAPI.Controllers
             }
         }
 
+        [HttpPut, Authorize]
+        public IActionResult UpdateUser([FromForm] UserUpdateVM request)
+        {
+            try
+            {
+                var response = userService.UpdateUserAsync(request);
+                return Ok(new { user = response.Result });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.InnerException?.Message });
+            }
+        } 
+
         [HttpPost("verify"), Authorize]
         public IActionResult VerifyToken()
         {
