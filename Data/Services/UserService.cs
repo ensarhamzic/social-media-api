@@ -74,7 +74,7 @@ namespace SocialMediaAPI.Data.Services
             return new { user, token };
         }
 
-        public async Task<User> UpdateUserAsync(UserUpdateVM request)
+        public async Task<object> UpdateUserAsync(UserUpdateVM request)
         {
             var userId = GetAuthUserId();
             var foundUserByUsername = dbContext.Users
@@ -126,8 +126,8 @@ namespace SocialMediaAPI.Data.Services
                 throw new Exception("User already exists");
             }
 
-
-            return authUser;
+            string token = CreateToken(authUser);
+            return new { user = authUser, token };
         }
 
         public User GetUserWithPosts(string stringId)

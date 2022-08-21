@@ -50,7 +50,7 @@ namespace SocialMediaAPI.Controllers
             try
             {
                 var response = userService.UpdateUserAsync(request);
-                return Ok(new { user = response.Result });
+                return Ok(response.Result);
             }
             catch (Exception ex)
             {
