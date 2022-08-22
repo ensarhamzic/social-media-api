@@ -15,6 +15,7 @@ namespace SocialMediaAPI.Data.ViewModels
         public string Email { get; set; } = string.Empty;
         [MinLength(8)]
         public string? Password { get; set; }
+        public bool? DeleteProfilePicture { get; set; }
         public IFormFile? ProfilePicture { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)

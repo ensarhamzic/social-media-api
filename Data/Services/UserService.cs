@@ -102,7 +102,17 @@ namespace SocialMediaAPI.Data.Services
                     authUser.PasswordSalt = passwordSalt;
                 }
 
-                if (request.ProfilePicture != null)
+                var profilePicturePublicId = $"profile-pictures/user{authUser.Id}_profile-picture";
+                if (request.DeleteProfilePicture == true)
+                {
+                    var deletionParams = new DeletionParams(profilePicturePublicId)
+                    {
+                        ResourceType = ResourceType.Image
+                    };
+                    cloudinary.Destroy(deletionParams);
+                    authUser.PictureURL = null;
+                }
+                else if (request.ProfilePicture != null)
                 {
                     var filePath = Path.GetTempFileName();
 
@@ -113,7 +123,7 @@ namespace SocialMediaAPI.Data.Services
                     var uploadParams = new ImageUploadParams()
                     {
                         File = new FileDescription(filePath),
-                        PublicId = $"profile-pictures/{Guid.NewGuid()}",
+                        PublicId = profilePicturePublicId,
                     };
                     var uploadResult = cloudinary.Upload(uploadParams);
                     authUser.PictureURL = uploadResult.Url.ToString();
