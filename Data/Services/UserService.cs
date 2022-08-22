@@ -140,7 +140,7 @@ namespace SocialMediaAPI.Data.Services
             return new { user = authUser, token };
         }
 
-        public User GetUserWithPosts(string stringId)
+        public object GetUserWithPosts(string stringId)
         {
             CheckId(stringId, out int id, out bool isValid);
             if (isValid)
@@ -150,7 +150,42 @@ namespace SocialMediaAPI.Data.Services
                     .Include(u => u.Posts).ThenInclude(p => p.Likes).ThenInclude(l => l.User)
                     .Include(u => u.Followers).ThenInclude(f => f.User)
                     .Include(u => u.Following).ThenInclude(f => f.Following)
-                    .FirstOrDefault(u => u.Id == id);
+                    .Where(u => u.Id == id)
+                    .Select(u => new
+                    {
+                        u.Id,
+                        u.Username,
+                        u.Email,
+                        u.FirstName,
+                        u.LastName,
+                        u.PictureURL,
+                        following = u.Following.Select(f => FormatUserData(f.Following)),
+                        followers = u.Followers.Select(f => FormatUserData(f.User)),
+                        posts = u.Posts
+                        .Select(p => new
+                        {
+                            p.Id,
+                            user = FormatUserData(p.User),
+                            p.Date,
+                            p.Text,
+                            likes = p.Likes
+                                .Select(l => new
+                                {
+                                    l.PostId,
+                                    user = FormatUserData(l.User),
+                                }),
+                            comments = p.Comments
+                                .Select(c => new
+                                {
+                                    c.Id,
+                                    c.UserId,
+                                    c.PostId,
+                                    c.Text,
+                                    c.Date,
+                                    user = FormatUserData(c.User),
+                                })
+                        })
+                    }).FirstOrDefault();
 
                 if (userWithPosts != null)
                 {
@@ -159,6 +194,19 @@ namespace SocialMediaAPI.Data.Services
 
             }
             throw new Exception("User not found");
+        }
+
+        private static object FormatUserData(User u)
+        {
+            return new
+            {
+                u.Id,
+                u.Username,
+                u.Email,
+                u.FirstName,
+                u.LastName,
+                u.PictureURL
+            };
         }
 
         public object GetUserFeed()
