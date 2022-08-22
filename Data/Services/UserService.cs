@@ -202,7 +202,6 @@ namespace SocialMediaAPI.Data.Services
                 .Where(u => u.FirstName.Contains(searchString)
                 || u.LastName.Contains(searchString)
                 || u.Username.Contains(searchString)
-                || u.Email.Contains(searchString)
                 ).Select(u => FormatUserData(u)).ToList();
             return users;
         }
