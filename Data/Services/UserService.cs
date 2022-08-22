@@ -196,18 +196,18 @@ namespace SocialMediaAPI.Data.Services
             throw new Exception("User not found");
         }
 
-        private static object FormatUserData(User u)
+        public object FindUsers(string searchString)
         {
-            return new
-            {
-                u.Id,
-                u.Username,
-                u.Email,
-                u.FirstName,
-                u.LastName,
-                u.PictureURL
-            };
+            var users = dbContext.Users
+                .Where(u => u.FirstName.Contains(searchString)
+                || u.LastName.Contains(searchString)
+                || u.Username.Contains(searchString)
+                || u.Email.Contains(searchString)
+                ).Select(u => FormatUserData(u)).ToList();
+            return users;
         }
+
+       
 
         public object GetUserFeed()
         {
@@ -335,6 +335,20 @@ namespace SocialMediaAPI.Data.Services
             var userId = GetAuthUserId();
             var user = dbContext.Users.FirstOrDefault(u => u.Id == userId);
             return user;
+        }
+
+
+        private static object FormatUserData(User u)
+        {
+            return new
+            {
+                u.Id,
+                u.Username,
+                u.Email,
+                u.FirstName,
+                u.LastName,
+                u.PictureURL
+            };
         }
 
     }

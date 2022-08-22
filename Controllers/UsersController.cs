@@ -113,5 +113,19 @@ namespace SocialMediaAPI.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("search/{searchString}"), Authorize]
+        public IActionResult SearchUsers(string searchString)
+        {
+            try
+            {
+                var foundUsers = userService.FindUsers(searchString);
+                return Ok(foundUsers);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }
