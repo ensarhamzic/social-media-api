@@ -5,6 +5,8 @@ using Microsoft.IdentityModel.Tokens;
 using SocialMediaAPI.Data;
 using SocialMediaAPI.Data.Services;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Identity.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +27,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuer = false,
             ValidateAudience = false,
         };
-    });
+    })
+    .AddMicrosoftIdentityWebApi(builder.Configuration, "AzureAd", "jwtBearer2");
 builder.Services.AddCors(c =>
 {
     c.AddPolicy("AllowOrigin", options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
