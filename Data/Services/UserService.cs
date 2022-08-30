@@ -297,6 +297,10 @@ namespace SocialMediaAPI.Data.Services
                     dbContext.SaveChanges();
                     return "Removed follower";
                 }
+                else
+                {
+                    throw new Exception($"User with id of {id} does not follow you");
+                }
             }
             throw new Exception($"User with id of {stringId} is not found");
         }
