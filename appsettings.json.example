@@ -1,0 +1,30 @@
+{
+  "AppSettings": {
+    "Token": "JWT SECRET TOKEN HERE"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "DefaultConnectionString": "SQL SERVER DATABASE CONNECTION STRING HERE"
+  },
+  "Cloudinary": {
+    "Cloud": "CLOUDINARY CLOUD NAME",
+    "ApiKey": "CLOUDINARY API KEY",
+    "ApiSecret": "CLOUDINARY API SECRET"
+  },
+  "AzureAd": {
+    "Instance": "INSTANCE",
+    "Domain": "DOMAIN",
+    "TenantId": "TENANT_ID",
+    "ClientId": "CLIENT_ID",
+    "CallbackPath": "/path",
+    "Scopes": "access_as_user",
+    "ClientSecret": "Client secret from app-registration. Check user secrets/azure portal.",
+    "ClientCertificates": []
+  }
+}
