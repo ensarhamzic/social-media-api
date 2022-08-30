@@ -26,9 +26,6 @@ namespace SocialMediaAPI.Data.Services
             dbContext.SaveChanges();
             return post;
         }
-
-        
-
         public Post UpdatePost(string stringId, PostVM request)
         {
             string errorMessage = $"Post with id of {stringId} is not found!";

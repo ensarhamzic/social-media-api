@@ -86,6 +86,20 @@ namespace SocialMediaAPI.Controllers
             }
         }
 
+        [HttpDelete("{id}/follow"), Authorize]
+        public IActionResult RemoveFollower(string id)
+        {
+            try
+            {
+                var message = userService.RemoveFollower(id);
+                return Ok(new { success = message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpGet("{id}/posts"), Authorize]
         public IActionResult GetUserWithPosts(string id)
         {

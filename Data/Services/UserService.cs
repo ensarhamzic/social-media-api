@@ -102,7 +102,7 @@ namespace SocialMediaAPI.Data.Services
                     authUser.PasswordSalt = passwordSalt;
                 }
 
-                var profilePicturePublicId = $"profile-pictures/user{authUser.Id}_profile-picture";
+                var profilePicturePublicId = $"profile-pictures-test2/user{authUser.Id}_profile-picture";
                 if (request.DeleteProfilePicture == true)
                 {
                     var deletionParams = new DeletionParams(profilePicturePublicId)
@@ -276,6 +276,33 @@ namespace SocialMediaAPI.Data.Services
             throw new Exception($"User with id of {stringId} is not found");
         }
 
+        public string RemoveFollower(string stringId)
+        {
+            CheckId(stringId, out int id, out bool isValid);
+            if (isValid)
+            {
+                var userId = GetAuthUserId();
+                if (userId == id)
+                    throw new Exception("Cannot unfollow yourself");
+                var foundUser = dbContext.Users.FirstOrDefault(u => u.Id == id);
+                if (foundUser == null)
+                {
+                    throw new Exception($"User with id of {stringId} is not found");
+                }
+                var foundFollow = dbContext.Follows
+                    .FirstOrDefault(f => f.UserId == id && f.FollowingId == userId);
+                if (foundFollow != null)
+                {
+                    dbContext.Follows.Remove(foundFollow);
+                    dbContext.SaveChanges();
+                    return "Removed follower";
+                }
+            }
+            throw new Exception($"User with id of {stringId} is not found");
+        }
+
+
+
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
             using (var hmac = new HMACSHA512())
@@ -350,5 +377,6 @@ namespace SocialMediaAPI.Data.Services
             };
         }
 
+        
     }
 }
