@@ -24,6 +24,7 @@
     "Username": "username",
     "Password": "password"
   },
+  "VerifyEmailUrl": "https://localhost:3000/verify",
   "AzureAd": {
     "Instance": "INSTANCE",
     "Domain": "DOMAIN",
