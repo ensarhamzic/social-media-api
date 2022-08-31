@@ -17,6 +17,13 @@
     "ApiKey": "CLOUDINARY API KEY",
     "ApiSecret": "CLOUDINARY API SECRET"
   },
+  "Mail": {
+    "From": "example@example.com",
+    "Smtp": "smtp.example.com",
+    "Port": 587,
+    "Username": "username",
+    "Password": "password"
+  },
   "AzureAd": {
     "Instance": "INSTANCE",
     "Domain": "DOMAIN",
