@@ -63,7 +63,7 @@ namespace SocialMediaAPI.Controllers
         {
             try
             {
-                var response = userService.UpdateUserAsync(request);
+                var response = userService.UpdateUser(request);
                 return Ok(response.Result);
             }
             catch (Exception ex)
