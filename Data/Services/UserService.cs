@@ -67,31 +67,17 @@ namespace SocialMediaAPI.Data.Services
             dbContext.Verifications.Add(newEmailVerification);
             dbContext.SaveChanges();
 
-            var email = new MimeMessage();
-            email.From.Add(MailboxAddress.Parse(configuration.GetSection("Mail:From").Value));
-            email.To.Add(MailboxAddress.Parse(newUser.Email));
-            email.Subject = "Confirm your account";
+
             var emailText = $"<h1>Welcome to Social Media App</h1>" +
-                $"<h3>Please click <a href=\"{configuration.GetSection("VerifyEmailUrl").Value}/{newEmailVerification.Token}\">here</a> to confirm your account</h3>";
-            email.Body = new TextPart(TextFormat.Html)
-            {
-                Text = emailText
-            };
-            using var smtp = new SmtpClient();
-            smtp.Connect(
-                configuration.GetSection("Mail:Smtp").Value,
-                int.Parse(configuration.GetSection("Mail:Port").Value),
-                SecureSocketOptions.StartTls
-                );
-            smtp.Authenticate(
-                configuration.GetSection("Mail:Username").Value,
-                configuration.GetSection("Mail:Password").Value
-                );
-            smtp.Send(email);
-            smtp.Disconnect(true);
+                $"<h3>Please click " +
+                $"<a href=\"{configuration.GetSection("VerifyEmailUrl").Value}/{newEmailVerification.Token}\">here</a>" +
+                $" to confirm your account</h3>";
+            SendEmail(newUser.Email, "Confirm your account", emailText);
 
             return "User successfully created";
         }
+
+
 
         public string ConfirmAccount(string confirmToken)
         {
@@ -139,7 +125,23 @@ namespace SocialMediaAPI.Data.Services
                 authUser.FirstName = request.FirstName;
                 authUser.LastName = request.LastName;
                 authUser.Username = request.Username;
-                authUser.Email = request.Email;
+                if (authUser.Email != request.Email)
+                {
+                    authUser.Email = request.Email;
+                    authUser.Verified = false;
+                    var newEmailVerification = new Verification()
+                    {
+                        UserId = authUser.Id,
+                        Token = Guid.NewGuid().ToString(),
+                    };
+                    dbContext.Verifications.Add(newEmailVerification);
+                    var emailText = $"<h1>Email address changed</h1>" +
+                        $"<h3>Please click " +
+                        $"<a href=\"{configuration.GetSection("VerifyEmailUrl").Value}/{newEmailVerification.Token}\">here</a>" +
+                        $" to confirm your new email address</h3>";
+                    SendEmail(authUser.Email, "Confirm your new email", emailText);
+                }
+
                 if (!string.IsNullOrEmpty(request.Password))
                 {
                     CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
@@ -251,7 +253,7 @@ namespace SocialMediaAPI.Data.Services
             return users;
         }
 
-       
+
 
         public object GetUserFeed()
         {
@@ -410,6 +412,30 @@ namespace SocialMediaAPI.Data.Services
             var userId = GetAuthUserId();
             var user = dbContext.Users.FirstOrDefault(u => u.Id == userId);
             return user;
+        }
+
+        private void SendEmail(string recipientEmail, string emailSubject, string emailText)
+        {
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse(configuration.GetSection("Mail:From").Value));
+            email.To.Add(MailboxAddress.Parse(recipientEmail));
+            email.Subject = emailSubject;
+            email.Body = new TextPart(TextFormat.Html)
+            {
+                Text = emailText
+            };
+            using var smtp = new SmtpClient();
+            smtp.Connect(
+                configuration.GetSection("Mail:Smtp").Value,
+                int.Parse(configuration.GetSection("Mail:Port").Value),
+                SecureSocketOptions.StartTls
+                );
+            smtp.Authenticate(
+                configuration.GetSection("Mail:Username").Value,
+                configuration.GetSection("Mail:Password").Value
+                );
+            smtp.Send(email);
+            smtp.Disconnect(true);
         }
 
 
