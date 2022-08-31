@@ -70,7 +70,7 @@ namespace SocialMediaAPI.Data.Services
             var email = new MimeMessage();
             email.From.Add(MailboxAddress.Parse(configuration.GetSection("Mail:From").Value));
             email.To.Add(MailboxAddress.Parse(newUser.Email));
-            email.Subject = "Test email";
+            email.Subject = "Confirm your account";
             var emailText = $"<h1>Welcome to Social Media App</h1>" +
                 $"<h3>Please click <a href=\"{configuration.GetSection("VerifyEmailUrl").Value}/{newEmailVerification.Token}\">here</a> to confirm your account</h3>";
             email.Body = new TextPart(TextFormat.Html)
