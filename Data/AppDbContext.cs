@@ -54,6 +54,12 @@ namespace SocialMediaAPI.Data
                 .WithMany(u => u.Followers)
                 .HasForeignKey(f => f.FollowingId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Verification>()
+               .HasIndex(v => v.UserId).IsUnique();
+
+            modelBuilder.Entity<Verification>()
+               .HasIndex(v => v.Token).IsUnique();
         }
 
         public DbSet<User> Users { get; set; }
@@ -61,6 +67,7 @@ namespace SocialMediaAPI.Data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Like> Likes { get; set; }
         public DbSet<Follow> Follows { get; set; }
+        public DbSet<Verification> Verifications { get; set; }
 
     }
 }
