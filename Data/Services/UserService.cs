@@ -38,7 +38,7 @@ namespace SocialMediaAPI.Data.Services
             cloudinary = new Cloudinary(account);
         }
 
-        public object Register(UserRegisterVM request)
+        public string Register(UserRegisterVM request)
         {
             bool userExists = dbContext.Users
                 .Any(u => u.Email == request.Email || u.Username == request.Username);
@@ -90,8 +90,7 @@ namespace SocialMediaAPI.Data.Services
             smtp.Send(email);
             smtp.Disconnect(true);
 
-            string token = CreateToken(newUser);
-            return new { user = newUser, token };
+            return "User successfully created";
         }
 
         public string ConfirmAccount(string confirmToken)
