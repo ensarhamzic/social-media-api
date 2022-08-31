@@ -113,6 +113,8 @@ namespace SocialMediaAPI.Data.Services
             var isPasswordCorrect = VerifyPasswordHash(request.Password, user.PasswordHash, user.PasswordSalt);
             if (!isPasswordCorrect)
                 throw new Exception(failedResponse);
+            if (!user.Verified)
+                throw new Exception("Verify your account first!");
             string token = CreateToken(user);
             return new { user, token };
         }
