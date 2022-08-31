@@ -19,7 +19,6 @@ namespace SocialMediaAPI.Data.ViewModels
         [Required]
         [MinLength(8)]
         public string ConfirmPassword { get; set; } = string.Empty;
-        public string? PictureURL { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

@@ -30,6 +30,20 @@ namespace SocialMediaAPI.Controllers
             }
         }
 
+        [HttpPost("confirm-account")]
+        public IActionResult ConfirmAccount([FromBody] VerifyAccountVM request)
+        {
+            try
+            {
+                var response = userService.ConfirmAccount(request.ConfirmToken);
+                return Ok(new {success = response});
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpPost("login")]
         public IActionResult Login([FromBody] UserLoginVM request)
         {

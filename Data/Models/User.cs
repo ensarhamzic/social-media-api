@@ -18,7 +18,7 @@ namespace SocialMediaAPI.Data.Models
         public byte[] PasswordHash { get; set; }
         public byte[] PasswordSalt { get; set; }
         public string? PictureURL { get; set; }
-        public bool Valid { get; set; }
+        public bool Verified { get; set; }
 
         public ICollection<Post> Posts { get; set; }
         public ICollection<Comment> Comments { get; set; }

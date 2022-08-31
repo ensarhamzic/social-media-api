@@ -1,14 +1,18 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using MailKit.Security;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using MimeKit.Text;
+using MimeKit;
 using SocialMediaAPI.Data.Models;
 using SocialMediaAPI.Data.ViewModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using MailKit.Net.Smtp;
 
 namespace SocialMediaAPI.Data.Services
 {
@@ -51,15 +55,55 @@ namespace SocialMediaAPI.Data.Services
                 Email = request.Email,
                 PasswordHash = passwordHash,
                 PasswordSalt = passwordSalt,
+                Verified = false,
             };
             dbContext.Users.Add(newUser);
             dbContext.SaveChanges();
+            var newEmailVerification = new Verification()
+            {
+                UserId = newUser.Id,
+                Token = Guid.NewGuid().ToString(),
+            };
+            dbContext.Verifications.Add(newEmailVerification);
+            dbContext.SaveChanges();
+
+            var email = new MimeMessage();
+            email.From.Add(MailboxAddress.Parse(configuration.GetSection("Mail:From").Value));
+            email.To.Add(MailboxAddress.Parse(newUser.Email));
+            email.Subject = "Test email";
+            var emailText = $"<h1>Welcome to Social Media App</h1>" +
+                $"<h3>Please click <a href=\"{configuration.GetSection("VerifyEmailUrl").Value}/{newEmailVerification.Token}\">here</a> to confirm your account</h3>";
+            email.Body = new TextPart(TextFormat.Html)
+            {
+                Text = emailText
+            };
+            using var smtp = new SmtpClient();
+            smtp.Connect(
+                configuration.GetSection("Mail:Smtp").Value,
+                int.Parse(configuration.GetSection("Mail:Port").Value),
+                SecureSocketOptions.StartTls
+                );
+            smtp.Authenticate(
+                configuration.GetSection("Mail:Username").Value,
+                configuration.GetSection("Mail:Password").Value
+                );
+            smtp.Send(email);
+            smtp.Disconnect(true);
 
             string token = CreateToken(newUser);
             return new { user = newUser, token };
         }
 
-
+        public string ConfirmAccount(string confirmToken)
+        {
+            var foundVerification = dbContext.Verifications.FirstOrDefault(v => v.Token == confirmToken);
+            if (foundVerification == null) throw new Exception("Invalid token");
+            var foundUser = dbContext.Users.FirstOrDefault(u => u.Id == foundVerification.UserId);
+            foundUser.Verified = true;
+            dbContext.Verifications.Remove(foundVerification);
+            dbContext.SaveChanges();
+            return "User verified";
+        }
 
         public object Login(UserLoginVM request)
         {
@@ -381,6 +425,6 @@ namespace SocialMediaAPI.Data.Services
             };
         }
 
-        
+
     }
 }
