@@ -159,6 +159,11 @@ namespace SocialMediaAPI.Data.Services
             return userId == GetAuthUserId();
         }
 
+        /// <summary>
+        /// Gets User data from json web token
+        /// </summary>
+        /// <returns>Id of user</returns>
+
         private int GetAuthUserId()
         {
             return int.Parse(httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.PrimarySid));

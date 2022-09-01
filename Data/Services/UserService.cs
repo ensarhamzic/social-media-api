@@ -47,6 +47,7 @@ namespace SocialMediaAPI.Data.Services
                 throw new Exception("User already exists");
             }
             CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
+            // add new user
             var newUser = new User()
             {
                 FirstName = request.FirstName,
@@ -59,6 +60,7 @@ namespace SocialMediaAPI.Data.Services
             };
             dbContext.Users.Add(newUser);
             dbContext.SaveChanges();
+            // create verification token
             var newEmailVerification = new Verification()
             {
                 UserId = newUser.Id,
@@ -67,7 +69,7 @@ namespace SocialMediaAPI.Data.Services
             dbContext.Verifications.Add(newEmailVerification);
             dbContext.SaveChanges();
 
-
+            // send verification email
             var emailText = $"<h1>Welcome to Social Media App</h1>" +
                 $"<h3>Please click " +
                 $"<a href=\"{configuration.GetSection("ClientAppUrl").Value}/verify/{newEmailVerification.Token}\">here</a>" +
@@ -81,6 +83,7 @@ namespace SocialMediaAPI.Data.Services
 
         public string ConfirmAccount(string confirmToken)
         {
+            // check verification token and verify user
             var foundVerification = dbContext.Verifications.FirstOrDefault(v => v.Token == confirmToken);
             if (foundVerification == null) throw new Exception("Invalid token");
             var foundUser = dbContext.Users.FirstOrDefault(u => u.Id == foundVerification.UserId);
@@ -94,6 +97,7 @@ namespace SocialMediaAPI.Data.Services
         {
             var foundUser = dbContext.Users.FirstOrDefault(u => u.Email == email);
             if (foundUser == null) throw new Exception("User with that email is not found");
+            // generates forgot password token
             var newPasswordReset = new PasswordReset()
             {
                 UserId = foundUser.Id,
@@ -101,6 +105,7 @@ namespace SocialMediaAPI.Data.Services
             };
             dbContext.PasswordResets.Add(newPasswordReset);
             dbContext.SaveChanges();
+            // sends email to user
             var emailText = $"<h1>Reset your password</h1>" +
                         $"<h3>Please click " +
                         $"<a href=\"{configuration.GetSection("ClientAppUrl").Value}/reset-password/{newPasswordReset.Token}\">here</a>" +
@@ -111,6 +116,7 @@ namespace SocialMediaAPI.Data.Services
 
         public string ResetPassword(string resetToken, string newPassword)
         {
+            // verifies reset token and updates user password
             var foundPasswordReset = dbContext.PasswordResets.FirstOrDefault(p => p.Token == resetToken);
             if (foundPasswordReset == null) throw new Exception("Invalid token");
             var foundUser = dbContext.Users.FirstOrDefault(u => u.Id == foundPasswordReset.UserId);
@@ -148,6 +154,7 @@ namespace SocialMediaAPI.Data.Services
 
             var authUser = GetAuthUserData();
 
+            // can user update username or email (does someone else have same email or username)
             var canUpdateUsername = foundUserByUsername?.Id == null || (foundUserByUsername.Id == authUser.Id);
             var canUpdateEmail = foundUserByEmail?.Id == null || (foundUserByEmail.Id == authUser.Id);
             var canUpdate = canUpdateUsername && canUpdateEmail;
@@ -157,6 +164,7 @@ namespace SocialMediaAPI.Data.Services
                 authUser.FirstName = request.FirstName;
                 authUser.LastName = request.LastName;
                 authUser.Username = request.Username;
+                // if user enters new email, send verificaion link to that new email
                 if (authUser.Email != request.Email)
                 {
                     authUser.Email = request.Email;
@@ -174,6 +182,7 @@ namespace SocialMediaAPI.Data.Services
                     SendEmail(authUser.Email, "Confirm your new email", emailText);
                 }
 
+                // if user enters new password, generate new password hash and salt
                 if (!string.IsNullOrEmpty(request.Password))
                 {
                     CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
@@ -182,7 +191,7 @@ namespace SocialMediaAPI.Data.Services
                 }
 
                 var profilePicturePublicId = $"profile-pictures-test2/user{authUser.Id}_profile-picture";
-                if (request.DeleteProfilePicture == true)
+                if (request.DeleteProfilePicture == true) // if user wants to delete their profile pic
                 {
                     var deletionParams = new DeletionParams(profilePicturePublicId)
                     {
@@ -191,7 +200,7 @@ namespace SocialMediaAPI.Data.Services
                     cloudinary.Destroy(deletionParams);
                     authUser.PictureURL = null;
                 }
-                else if (request.ProfilePicture != null)
+                else if (request.ProfilePicture != null) // if user wants to upload new profile pic
                 {
                     var filePath = Path.GetTempFileName();
 
@@ -222,6 +231,7 @@ namespace SocialMediaAPI.Data.Services
             }
             else
             {
+                // returns null values if users verified status changes during update
                 return new { user = (User?)null, token = (string?)null };
             }
         }
@@ -231,6 +241,7 @@ namespace SocialMediaAPI.Data.Services
             CheckId(stringId, out int id, out bool isValid);
             if (isValid)
             {
+                // Gets user posts and formats data
                 var userWithPosts = dbContext.Users
                     .Include(u => u.Posts).ThenInclude(p => p.Comments).ThenInclude(c => c.User)
                     .Include(u => u.Posts).ThenInclude(p => p.Likes).ThenInclude(l => l.User)
@@ -296,6 +307,7 @@ namespace SocialMediaAPI.Data.Services
 
         public object GetUserFeed()
         {
+            // gets posts of users followed by current user
             var userId = GetAuthUserId();
             var userData = dbContext.Users
                 .Include(u => u.Following).ThenInclude(f => f.Following).ThenInclude(f => f.Posts).ThenInclude(p => p.Comments)
@@ -341,13 +353,13 @@ namespace SocialMediaAPI.Data.Services
                 }
                 var foundFollow = dbContext.Follows
                     .FirstOrDefault(f => f.UserId == userId && f.FollowingId == id);
-                if (foundFollow != null)
+                if (foundFollow != null) // if user follows that user, remove follow
                 {
                     dbContext.Follows.Remove(foundFollow);
                     dbContext.SaveChanges();
                     return "User unfollowed";
                 }
-                else
+                else // else, add user to following list
                 {
                     var newFollow = new Follow()
                     {
@@ -364,6 +376,7 @@ namespace SocialMediaAPI.Data.Services
 
         public string RemoveFollower(string stringId)
         {
+            // allows user to remove user from followers list
             CheckId(stringId, out int id, out bool isValid);
             if (isValid)
             {
