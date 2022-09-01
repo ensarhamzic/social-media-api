@@ -70,7 +70,7 @@ namespace SocialMediaAPI.Data.Services
 
             var emailText = $"<h1>Welcome to Social Media App</h1>" +
                 $"<h3>Please click " +
-                $"<a href=\"{configuration.GetSection("VerifyEmailUrl").Value}/{newEmailVerification.Token}\">here</a>" +
+                $"<a href=\"{configuration.GetSection("ClientAppUrl").Value}/verify/{newEmailVerification.Token}\">here</a>" +
                 $" to confirm your account</h3>";
             SendEmail(newUser.Email, "Confirm your account", emailText);
 
@@ -88,6 +88,38 @@ namespace SocialMediaAPI.Data.Services
             dbContext.Verifications.Remove(foundVerification);
             dbContext.SaveChanges();
             return "User verified";
+        }
+
+        public string ForgotPassword(string email)
+        {
+            var foundUser = dbContext.Users.FirstOrDefault(u => u.Email == email);
+            if (foundUser == null) throw new Exception("User with that email is not found");
+            var newPasswordReset = new PasswordReset()
+            {
+                UserId = foundUser.Id,
+                Token = Guid.NewGuid().ToString()
+            };
+            dbContext.PasswordResets.Add(newPasswordReset);
+            dbContext.SaveChanges();
+            var emailText = $"<h1>Reset your password</h1>" +
+                        $"<h3>Please click " +
+                        $"<a href=\"{configuration.GetSection("ClientAppUrl").Value}/reset-password/{newPasswordReset.Token}\">here</a>" +
+                        $" to reset your password</h3>";
+            SendEmail(foundUser.Email, "Reset password", emailText);
+            return "Token created";
+        }
+
+        public string ResetPassword(string resetToken, string newPassword)
+        {
+            var foundPasswordReset = dbContext.PasswordResets.FirstOrDefault(p => p.Token == resetToken);
+            if (foundPasswordReset == null) throw new Exception("Invalid token");
+            var foundUser = dbContext.Users.FirstOrDefault(u => u.Id == foundPasswordReset.UserId);
+            CreatePasswordHash(newPassword, out byte[] passwordHash, out byte[] passwordSalt);
+            foundUser.PasswordHash = passwordHash;
+            foundUser.PasswordSalt = passwordSalt;
+            dbContext.PasswordResets.Remove(foundPasswordReset);
+            dbContext.SaveChanges();
+            return "Password reset completed";
         }
 
         public object Login(UserLoginVM request)
@@ -137,7 +169,7 @@ namespace SocialMediaAPI.Data.Services
                     dbContext.Verifications.Add(newEmailVerification);
                     var emailText = $"<h1>Email address changed</h1>" +
                         $"<h3>Please click " +
-                        $"<a href=\"{configuration.GetSection("VerifyEmailUrl").Value}/{newEmailVerification.Token}\">here</a>" +
+                        $"<a href=\"{configuration.GetSection("ClientAppUrl").Value}/verify/{newEmailVerification.Token}\">here</a>" +
                         $" to confirm your new email address</h3>";
                     SendEmail(authUser.Email, "Confirm your new email", emailText);
                 }

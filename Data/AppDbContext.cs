@@ -60,6 +60,12 @@ namespace SocialMediaAPI.Data
 
             modelBuilder.Entity<Verification>()
                .HasIndex(v => v.Token).IsUnique();
+
+            modelBuilder.Entity<PasswordReset>()
+               .HasIndex(v => v.UserId).IsUnique();
+
+            modelBuilder.Entity<PasswordReset>()
+               .HasIndex(v => v.Token).IsUnique();
         }
 
         public DbSet<User> Users { get; set; }
@@ -68,6 +74,7 @@ namespace SocialMediaAPI.Data
         public DbSet<Like> Likes { get; set; }
         public DbSet<Follow> Follows { get; set; }
         public DbSet<Verification> Verifications { get; set; }
+        public DbSet<PasswordReset> PasswordResets { get; set; }
 
     }
 }
