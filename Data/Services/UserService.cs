@@ -256,8 +256,28 @@ namespace SocialMediaAPI.Data.Services
                         u.FirstName,
                         u.LastName,
                         u.PictureURL,
-                        following = u.Following.Select(f => FormatUserData(f.Following)),
-                        followers = u.Followers.Select(f => FormatUserData(f.User)),
+                        following = u.Following.Select(f =>
+                            new
+                            {
+                                f.Following.Id,
+                                f.Following.Username,
+                                f.Following.Email,
+                                f.Following.FirstName,
+                                f.Following.LastName,
+                                f.Following.PictureURL,
+                                f.Accepted,
+                            }
+                        ),
+                        followers = u.Followers.Select(f => new
+                        {
+                            f.User.Id,
+                            f.User.Username,
+                            f.User.Email,
+                            f.User.FirstName,
+                            f.User.LastName,
+                            f.User.PictureURL,
+                            f.Accepted,
+                        }),
                         posts = u.Posts
                         .Select(p => new
                         {
@@ -310,8 +330,8 @@ namespace SocialMediaAPI.Data.Services
             // gets posts of users followed by current user
             var userId = GetAuthUserId();
             var userData = dbContext.Users
-                .Include(u => u.Following).ThenInclude(f => f.Following).ThenInclude(f => f.Posts).ThenInclude(p => p.Comments)
-                .Include(u => u.Following).ThenInclude(f => f.Following).ThenInclude(f => f.Posts).ThenInclude(p => p.Likes)
+                .Include(u => u.Following.Where(f => f.Accepted == true)).ThenInclude(f => f.Following).ThenInclude(f => f.Posts).ThenInclude(p => p.Comments)
+                .Include(u => u.Following.Where(f => f.Accepted == true)).ThenInclude(f => f.Following).ThenInclude(f => f.Posts).ThenInclude(p => p.Likes)
                 .FirstOrDefault(u => u.Id == userId);
             var feed = new List<object>();
             foreach (var follow in userData.Following)
@@ -364,11 +384,12 @@ namespace SocialMediaAPI.Data.Services
                     var newFollow = new Follow()
                     {
                         UserId = userId,
-                        FollowingId = id
+                        FollowingId = id,
+                        Accepted = false
                     };
                     dbContext.Follows.Add(newFollow);
                     dbContext.SaveChanges();
-                    return "User followed";
+                    return "Follow request sent";
                 }
             }
             throw new Exception($"User with id of {stringId} is not found");
@@ -395,6 +416,35 @@ namespace SocialMediaAPI.Data.Services
                     dbContext.Follows.Remove(foundFollow);
                     dbContext.SaveChanges();
                     return "Removed follower";
+                }
+                else
+                {
+                    throw new Exception($"User with id of {id} does not follow you");
+                }
+            }
+            throw new Exception($"User with id of {stringId} is not found");
+        }
+
+        public string AcceptFollower(string stringId)
+        {
+            CheckId(stringId, out int id, out bool isValid);
+            if (isValid)
+            {
+                var userId = GetAuthUserId();
+                if (userId == id)
+                    throw new Exception("Cannot follow yourself");
+                var foundUser = dbContext.Users.FirstOrDefault(u => u.Id == id);
+                if (foundUser == null)
+                {
+                    throw new Exception($"User with id of {stringId} is not found");
+                }
+                var foundFollow = dbContext.Follows
+                    .FirstOrDefault(f => f.UserId == id && f.FollowingId == userId);
+                if (foundFollow != null)
+                {
+                    foundFollow.Accepted = true;
+                    dbContext.SaveChanges();
+                    return "Follow approved";
                 }
                 else
                 {

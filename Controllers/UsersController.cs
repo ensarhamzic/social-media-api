@@ -114,6 +114,20 @@ namespace SocialMediaAPI.Controllers
             }
         }
 
+        [HttpPost("followers/{id}"), Authorize]
+        public IActionResult AcceptFollower(string id)
+        {
+            try
+            {
+                var message = userService.AcceptFollower(id);
+                return Ok(new { success = message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpGet("{id}/posts"), Authorize]
         public IActionResult GetUserWithPosts(string id)
         {

@@ -10,6 +10,7 @@ namespace SocialMediaAPI.Data.Models
         public int UserId { get; set; }
         public User Following { get; set; }
         public int FollowingId { get; set; }
+        public bool Accepted { get; set; }
 
     }
 }
