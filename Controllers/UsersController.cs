@@ -128,6 +128,34 @@ namespace SocialMediaAPI.Controllers
             }
         }
 
+        [HttpPost("forgot-password")]
+        public IActionResult ForgotPassword(ForgotPasswordVM request)
+        {
+            try
+            {
+                var response = userService.ForgotPassword(request.Email);
+                return Ok(new {success = response});
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPatch("reset-password")]
+        public IActionResult ResetPassword(PasswordResetVM request)
+        {
+            try
+            {
+                var response = userService.ResetPassword(request.ResetToken, request.NewPassword);
+                return Ok(new { success = response });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
         [HttpGet("feed"), Authorize]
         public IActionResult GetUserFeed()
         {
