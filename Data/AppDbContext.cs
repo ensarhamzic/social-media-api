@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SocialMediaAPI.Data.Models;
+using SocialMediaAPI.Data.Services;
 
 namespace SocialMediaAPI.Data
 {
@@ -24,6 +25,22 @@ namespace SocialMediaAPI.Data
 
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Username).IsUnique();
+
+
+            UserService.CreatePasswordHash(configuration.GetSection("AdminCreds:Password").Value, out byte[] passwordHash, out byte[] passwordSalt);
+            modelBuilder.Entity<User>()
+                .HasData(new User()
+                {
+                    Id = -1,
+                    FirstName = configuration.GetSection("AdminCreds:FirstName").Value,
+                    LastName = configuration.GetSection("AdminCreds:LastName").Value,
+                    Username = configuration.GetSection("AdminCreds:Username").Value,
+                    PasswordHash = passwordHash,
+                    PasswordSalt = passwordSalt,
+                    Email = configuration.GetSection("AdminCreds:Email").Value,
+                    Role = "Admin",
+                    Verified = true,
+                });
 
             modelBuilder.Entity<Post>()
                 .HasOne<User>(p => p.User)

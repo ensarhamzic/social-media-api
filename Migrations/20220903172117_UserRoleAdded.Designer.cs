@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SocialMediaAPI.Data;
 
@@ -11,9 +12,10 @@ using SocialMediaAPI.Data;
 namespace SocialMediaAPI.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220903172117_UserRoleAdded")]
+    partial class UserRoleAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -205,20 +207,6 @@ namespace SocialMediaAPI.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = -1,
-                            Email = "admin@admin.com",
-                            FirstName = "Admin",
-                            LastName = "Admin",
-                            PasswordHash = new byte[] { 186, 98, 134, 94, 215, 47, 161, 176, 46, 46, 88, 8, 18, 237, 159, 0, 123, 0, 70, 214, 246, 216, 9, 31, 44, 162, 83, 86, 31, 92, 63, 118, 112, 226, 72, 86, 140, 62, 252, 111, 224, 186, 81, 74, 104, 247, 199, 127, 123, 202, 48, 125, 8, 177, 219, 212, 106, 240, 77, 5, 47, 252, 206, 138 },
-                            PasswordSalt = new byte[] { 187, 167, 96, 139, 15, 190, 224, 215, 11, 230, 48, 142, 28, 33, 106, 51, 235, 3, 225, 159, 149, 180, 155, 182, 87, 128, 151, 102, 54, 222, 99, 242, 248, 220, 212, 16, 94, 247, 110, 125, 33, 18, 131, 159, 86, 52, 30, 132, 249, 36, 102, 226, 224, 174, 148, 155, 11, 116, 229, 254, 78, 237, 118, 95, 101, 54, 69, 192, 216, 239, 226, 96, 40, 133, 248, 115, 230, 40, 102, 199, 147, 80, 224, 184, 235, 67, 9, 145, 244, 108, 114, 90, 207, 27, 133, 128, 145, 89, 86, 8, 227, 125, 229, 178, 223, 222, 191, 161, 153, 153, 239, 120, 127, 55, 173, 128, 151, 48, 254, 85, 43, 221, 149, 8, 20, 222, 13, 67 },
-                            Role = "Admin",
-                            Username = "admin",
-                            Verified = true
-                        });
                 });
 
             modelBuilder.Entity("SocialMediaAPI.Data.Models.Verification", b =>

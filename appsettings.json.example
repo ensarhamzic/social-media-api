@@ -24,6 +24,13 @@
     "Username": "username",
     "Password": "password"
   },
+  "AdminCreds": {
+    "FirstName": "Admin",
+    "LastName": "Admin",
+    "Email": "admin@admin.com",
+    "Username": "admin",
+    "Password": "adminadmin"
+  },
   "VerifyEmailUrl": "http://localhost:3000/verify",
   "AzureAd": {
     "Instance": "INSTANCE",
