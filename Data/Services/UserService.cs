@@ -88,8 +88,13 @@ namespace SocialMediaAPI.Data.Services
             var foundVerification = dbContext.Verifications.FirstOrDefault(v => v.Token == confirmToken);
             if (foundVerification == null) throw new Exception("Invalid token");
             var foundUser = dbContext.Users.FirstOrDefault(u => u.Id == foundVerification.UserId);
+            dbContext.Verifications.RemoveRange(dbContext.Verifications.Where(v => v.UserId == foundUser.Id));
+            if(foundUser.Verified == true)
+            {
+                return "User verified";
+                dbContext.SaveChanges();
+            }
             foundUser.Verified = true;
-            dbContext.Verifications.Remove(foundVerification);
             dbContext.SaveChanges();
             return "User verified";
         }
@@ -124,7 +129,7 @@ namespace SocialMediaAPI.Data.Services
             CreatePasswordHash(newPassword, out byte[] passwordHash, out byte[] passwordSalt);
             foundUser.PasswordHash = passwordHash;
             foundUser.PasswordSalt = passwordSalt;
-            dbContext.PasswordResets.Remove(foundPasswordReset);
+            dbContext.PasswordResets.RemoveRange(dbContext.PasswordResets.Where(pr => pr.UserId == foundUser.Id));
             dbContext.SaveChanges();
             return "Password reset completed";
         }

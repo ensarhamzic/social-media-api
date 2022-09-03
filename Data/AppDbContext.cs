@@ -72,14 +72,10 @@ namespace SocialMediaAPI.Data
                 .HasForeignKey(f => f.FollowingId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<Verification>()
-               .HasIndex(v => v.UserId).IsUnique();
 
             modelBuilder.Entity<Verification>()
                .HasIndex(v => v.Token).IsUnique();
 
-            modelBuilder.Entity<PasswordReset>()
-               .HasIndex(v => v.UserId).IsUnique();
 
             modelBuilder.Entity<PasswordReset>()
                .HasIndex(v => v.Token).IsUnique();
