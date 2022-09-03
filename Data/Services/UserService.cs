@@ -248,7 +248,7 @@ namespace SocialMediaAPI.Data.Services
                     .Include(u => u.Posts).ThenInclude(p => p.Likes).ThenInclude(l => l.User)
                     .Include(u => u.Followers).ThenInclude(f => f.User)
                     .Include(u => u.Following).ThenInclude(f => f.Following)
-                    .Where(u => u.Id == id)
+                    .Where(u => u.Id == id && u.Role == "User")
                     .Select(u => new
                     {
                         u.Id,
@@ -317,9 +317,9 @@ namespace SocialMediaAPI.Data.Services
         public object FindUsers(string searchString)
         {
             var users = dbContext.Users
-                .Where(u => u.FirstName.Contains(searchString)
+                .Where(u => (u.FirstName.Contains(searchString)
                 || u.LastName.Contains(searchString)
-                || u.Username.Contains(searchString)
+                || u.Username.Contains(searchString)) && u.Role == "User"
                 ).Select(u => FormatUserData(u)).ToList();
             return users;
         }
@@ -333,7 +333,7 @@ namespace SocialMediaAPI.Data.Services
             var userData = dbContext.Users
                 .Include(u => u.Following.Where(f => f.Accepted == true)).ThenInclude(f => f.Following).ThenInclude(f => f.Posts).ThenInclude(p => p.Comments)
                 .Include(u => u.Following.Where(f => f.Accepted == true)).ThenInclude(f => f.Following).ThenInclude(f => f.Posts).ThenInclude(p => p.Likes)
-                .FirstOrDefault(u => u.Id == userId);
+                .FirstOrDefault(u => u.Id == userId && u.Role == "User");
             var feed = new List<object>();
             foreach (var follow in userData.Following)
             {
@@ -365,10 +365,14 @@ namespace SocialMediaAPI.Data.Services
             if (isValid)
             {
                 var userId = GetAuthUserId();
+                if(AuthUserIsAdmin())
+                {
+                    throw new Exception("Cannot do this");
+                }
                 if (userId == id)
                     throw new Exception("Cannot follow/unfollow yourself");
                 var foundUser = dbContext.Users.FirstOrDefault(u => u.Id == id);
-                if (foundUser == null)
+                if (foundUser == null || foundUser.Role == "Admin")
                 {
                     throw new Exception($"User with id of {stringId} is not found");
                 }
@@ -451,6 +455,35 @@ namespace SocialMediaAPI.Data.Services
                 {
                     throw new Exception($"User with id of {id} does not follow you");
                 }
+            }
+            throw new Exception($"User with id of {stringId} is not found");
+        }
+
+        public string DeleteUser(string stringId)
+        {
+            CheckId(stringId, out int id, out bool isValid);
+            if (isValid)
+            {
+                var userId = GetAuthUserId();
+                if (userId != id && !AuthUserIsAdmin())
+                    throw new Exception("Cannot delete this account");
+                var foundUser = dbContext.Users.FirstOrDefault(u => u.Id == id);
+                if (foundUser == null)
+                {
+                    throw new Exception($"User with id of {stringId} is not found");
+                }
+                dbContext.Posts.RemoveRange(dbContext.Posts.Where(p => p.UserId == id));
+                dbContext.Comments.RemoveRange(dbContext.Comments.Where(c => c.UserId == id));
+                dbContext.Follows.RemoveRange(dbContext.Follows.Where(f => f.UserId == id));
+                dbContext.Follows.RemoveRange(dbContext.Follows.Where(f => f.FollowingId == id));
+                dbContext.Likes.RemoveRange(dbContext.Likes.Where(l => l.UserId == id));
+                dbContext.PasswordResets.RemoveRange(dbContext.PasswordResets.Where(pr => pr.UserId == id));
+                dbContext.Verifications.RemoveRange(dbContext.Verifications.Where(v => v.UserId == id));
+                dbContext.Users.Remove(dbContext.Users.FirstOrDefault(u => u.Id == id));
+                dbContext.SaveChanges();
+
+                return "User deleted";
+
             }
             throw new Exception($"User with id of {stringId} is not found");
         }
@@ -550,6 +583,11 @@ namespace SocialMediaAPI.Data.Services
                 u.LastName,
                 u.PictureURL
             };
+        }
+
+        private bool AuthUserIsAdmin()
+        {
+            return httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role) == "Admin";
         }
 
 

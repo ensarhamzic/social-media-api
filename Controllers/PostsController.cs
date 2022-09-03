@@ -8,7 +8,6 @@ namespace SocialMediaAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class PostsController : ControllerBase
     {
         private PostService postService;
@@ -18,7 +17,7 @@ namespace SocialMediaAPI.Controllers
             this.postService = postService;
         }
 
-        [HttpPost]
+        [HttpPost, Authorize(Roles = "User")]
         public IActionResult CreatePost([FromBody] PostVM request)
         {
             try
@@ -32,7 +31,7 @@ namespace SocialMediaAPI.Controllers
             }
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("{id}"), Authorize(Roles = "User")]
         public IActionResult UpdatePost(string id, [FromBody] PostVM request)
         {
             try
@@ -46,7 +45,7 @@ namespace SocialMediaAPI.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}"), Authorize]
         public IActionResult DeletePost(string id)
         {
             try
@@ -60,7 +59,7 @@ namespace SocialMediaAPI.Controllers
             }
         }
 
-        [HttpPost("{id}/likes")]
+        [HttpPost("{id}/likes"), Authorize(Roles = "User")]
         public IActionResult LikeOrUnlikePost(string id)
         {
             try
@@ -74,7 +73,7 @@ namespace SocialMediaAPI.Controllers
             }
         }
 
-        [HttpPost("{id}/comments")]
+        [HttpPost("{id}/comments"), Authorize(Roles = "User")]
         public IActionResult CommentPost(string id, [FromBody] CommentVM request)
         {
             try
@@ -88,7 +87,7 @@ namespace SocialMediaAPI.Controllers
             }
         }
 
-        [HttpDelete("{postId}/comments/{commentId}")]
+        [HttpDelete("{postId}/comments/{commentId}"), Authorize]
         public IActionResult DeletePostComment(string postId, string commentId)
         {
             try

@@ -197,5 +197,19 @@ namespace SocialMediaAPI.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpDelete("{id}"), Authorize]
+        public IActionResult DeleteUser(string id)
+        {
+            try
+            {
+                var response = userService.DeleteUser(id);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

@@ -57,7 +57,7 @@ namespace SocialMediaAPI.Data.Services
                 var foundPost = dbContext.Posts.FirstOrDefault(p => p.Id == id);
                 if (foundPost != null)
                 {
-                    if (UserHasPermission(foundPost.UserId))
+                    if (UserHasPermission(foundPost.UserId) || AuthUserIsAdmin())
                     {
                         dbContext.Posts.Remove(foundPost);
                         dbContext.SaveChanges();
@@ -106,7 +106,7 @@ namespace SocialMediaAPI.Data.Services
                     if(foundComment != null)
                     {
                         if((UserHasPermission(foundComment.UserId) || UserHasPermission(foundPost.UserId))
-                            && foundComment.PostId == postId)
+                            && foundComment.PostId == postId || AuthUserIsAdmin())
                         {
                             dbContext.Comments.Remove(foundComment);
                             dbContext.SaveChanges();
@@ -167,6 +167,11 @@ namespace SocialMediaAPI.Data.Services
         private int GetAuthUserId()
         {
             return int.Parse(httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.PrimarySid));
+        }
+
+        private bool AuthUserIsAdmin()
+        {
+            return httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Role) == "Admin";
         }
     }
 }
