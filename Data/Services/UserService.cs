@@ -89,7 +89,7 @@ namespace SocialMediaAPI.Data.Services
             if (foundVerification == null) throw new Exception("Invalid token");
             var foundUser = dbContext.Users.FirstOrDefault(u => u.Id == foundVerification.UserId);
             dbContext.Verifications.RemoveRange(dbContext.Verifications.Where(v => v.UserId == foundUser.Id));
-            if(foundUser.Verified == true)
+            if (foundUser.Verified == true)
             {
                 return "User verified";
                 dbContext.SaveChanges();
@@ -196,7 +196,7 @@ namespace SocialMediaAPI.Data.Services
                     authUser.PasswordSalt = passwordSalt;
                 }
 
-                var profilePicturePublicId = $"profile-pictures-test2/user{authUser.Id}_profile-picture";
+                var profilePicturePublicId = $"{configuration.GetSection("Cloudinary:ProfilePicsFolderName").Value}/user{authUser.Id}_profile-picture";
                 if (request.DeleteProfilePicture == true) // if user wants to delete their profile pic
                 {
                     var deletionParams = new DeletionParams(profilePicturePublicId)
@@ -370,7 +370,7 @@ namespace SocialMediaAPI.Data.Services
             if (isValid)
             {
                 var userId = GetAuthUserId();
-                if(AuthUserIsAdmin())
+                if (AuthUserIsAdmin())
                 {
                     throw new Exception("Cannot do this");
                 }
@@ -485,6 +485,12 @@ namespace SocialMediaAPI.Data.Services
                 dbContext.PasswordResets.RemoveRange(dbContext.PasswordResets.Where(pr => pr.UserId == id));
                 dbContext.Verifications.RemoveRange(dbContext.Verifications.Where(v => v.UserId == id));
                 dbContext.Users.Remove(dbContext.Users.FirstOrDefault(u => u.Id == id));
+                var profilePicturePublicId = $"{configuration.GetSection("Cloudinary:ProfilePicsFolderName").Value}/user{id}_profile-picture";
+                var deletionParams = new DeletionParams(profilePicturePublicId)
+                {
+                    ResourceType = ResourceType.Image
+                };
+                cloudinary.Destroy(deletionParams);
                 dbContext.SaveChanges();
 
                 return "User deleted";
