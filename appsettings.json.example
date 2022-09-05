@@ -15,7 +15,8 @@
   "Cloudinary": {
     "Cloud": "CLOUDINARY CLOUD NAME",
     "ApiKey": "CLOUDINARY API KEY",
-    "ApiSecret": "CLOUDINARY API SECRET"
+    "ApiSecret": "CLOUDINARY API SECRET",
+    "ProfilePicsFolderName": "profile-pictures"
   },
   "Mail": {
     "From": "example@example.com",
