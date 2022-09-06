@@ -32,7 +32,7 @@
     "Username": "admin",
     "Password": "adminadmin"
   },
-  "VerifyEmailUrl": "http://localhost:3000/verify",
+  "ClientAppUrl": "http://localhost:3000/verify",
   "AzureAd": {
     "Instance": "INSTANCE",
     "Domain": "DOMAIN",
