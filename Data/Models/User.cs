@@ -25,6 +25,8 @@ namespace SocialMediaAPI.Data.Models
         public ICollection<Comment> Comments { get; set; }
         public ICollection<Follow> Following { get; set; }
         public ICollection<Follow> Followers { get; set; }
+        public ICollection <Message> SentMessages { get; set; }
+        public ICollection <Message> ReceivedMessages { get; set; }
 
     }
 }

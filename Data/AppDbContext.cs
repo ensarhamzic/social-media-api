@@ -79,6 +79,19 @@ namespace SocialMediaAPI.Data
 
             modelBuilder.Entity<PasswordReset>()
                .HasIndex(v => v.Token).IsUnique();
+
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.FromUser)
+                .WithMany(u => u.SentMessages)
+                .HasForeignKey(m => m.FromUserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.ToUser)
+                .WithMany(u => u.ReceivedMessages)
+                .HasForeignKey(m => m.ToUserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
         }
 
         public DbSet<User> Users { get; set; }
@@ -88,6 +101,7 @@ namespace SocialMediaAPI.Data
         public DbSet<Follow> Follows { get; set; }
         public DbSet<Verification> Verifications { get; set; }
         public DbSet<PasswordReset> PasswordResets { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
     }
 }
