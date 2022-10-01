@@ -63,6 +63,7 @@ builder.Services.AddDbContext<AppDbContext>();
 
 builder.Services.AddTransient<UserService>();
 builder.Services.AddTransient<PostService>();
+builder.Services.AddTransient<MessageService>();
 
 builder.Services.AddHttpContextAccessor();
 
