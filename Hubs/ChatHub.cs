@@ -1,5 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using SocialMediaAPI.Data;
+using SocialMediaAPI.Data.Models;
+using SocialMediaAPI.Hubs.ViewModels;
 using System.Security.Claims;
 
 namespace SocialMediaAPI.Hubs
@@ -7,10 +11,12 @@ namespace SocialMediaAPI.Hubs
     public class ChatHub : Hub
     {
         private IHttpContextAccessor httpContextAccessor;
+        private AppDbContext dbContext;
 
-        public ChatHub(IHttpContextAccessor httpContextAccessor)
+        public ChatHub(IHttpContextAccessor httpContextAccessor, AppDbContext dbContext)
         {
             this.httpContextAccessor = httpContextAccessor;
+            this.dbContext = dbContext;
         }
 
         [Authorize]
@@ -19,8 +25,28 @@ namespace SocialMediaAPI.Hubs
             var userId = GetAuthUserId();
             await Groups.AddToGroupAsync(Context.ConnectionId, userId.ToString());
 
+        }
+
+        [Authorize]
+        public async Task SendMessage(NewMessageVM msg)
+        {
+            var userId = GetAuthUserId();
+            var user = await dbContext.Users.Where(u => u.Id == userId).Select(u => new {u.Id, u.FirstName, u.LastName, u.PictureURL, u.Username, u.Email}).FirstOrDefaultAsync();
+            var newMessage = new Message()
+            {
+                Text = msg.Message,
+                FromUserId = userId,
+                ToUserId = msg.To,
+                TimeSent = DateTime.Now
+            };
+
+            await dbContext.AddAsync(newMessage);
+            await dbContext.SaveChangesAsync();
+
+            await Clients.Group(msg.To.ToString())
+                .SendAsync("ReceiveMessage", user, newMessage);
             await Clients.Group(userId.ToString())
-                .SendAsync("ReceiveMessage", userId, "You have joined chat");
+                .SendAsync("ReceiveMessage", user, newMessage);
         }
 
         private int GetAuthUserId()
