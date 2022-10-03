@@ -46,19 +46,33 @@ namespace SocialMediaAPI.Data.Services
             var toMessages = messages.GroupBy(m => m.ToUserId)
                 .Select(m => m.FirstOrDefault());
 
+            var hasOwnChat = messages.Any(m => m.FromUserId == userId && m.ToUserId == userId);
+
             // extracts just users but only unique ones
             List<User> chatUsers = new List<User>();
+            
             foreach(var msg in fromMessages)
             {
                 if (msg == null) break;
+                // user sent message but not to himself
+                if (msg.FromUserId == userId && !hasOwnChat) continue;
                 chatUsers.Add(msg.FromUser);
             }
 
             foreach(var msg in toMessages)
             {
                 if (msg == null) break;
+                // Check if chat is already in list
                 if (chatUsers.Any(c => c.Id == msg.ToUser.Id)) continue;
+                // user received message but not to himself
+                if (msg.ToUserId == userId && !hasOwnChat) continue;
                 chatUsers.Add(msg.ToUser);
+            }
+
+            var ownChat = dbContext.Messages.FirstOrDefault(m => m.FromUserId == userId && m.ToUserId == userId);
+            if(ownChat == null)
+            {
+
             }
 
             return chatUsers;
