@@ -37,7 +37,8 @@ namespace SocialMediaAPI.Hubs
                 Text = msg.Message,
                 FromUserId = userId,
                 ToUserId = msg.To,
-                TimeSent = DateTime.Now
+                TimeSent = DateTime.Now,
+                Seen = false,
             };
 
             await dbContext.AddAsync(newMessage);
@@ -47,6 +48,19 @@ namespace SocialMediaAPI.Hubs
                 .SendAsync("ReceiveMessage", user, newMessage);
             await Clients.Group(userId.ToString())
                 .SendAsync("ReceiveMessage", user, newMessage);
+        }
+
+        [Authorize]
+        public async Task SeenMessages(int chatUserId)
+        {
+            var userId = GetAuthUserId();
+            var msgs = dbContext.Messages
+                .Where(m => m.FromUserId == chatUserId
+                && m.ToUserId == userId
+                && !m.Seen);
+            foreach(var msg in msgs)
+                msg.Seen = true;
+            await dbContext.SaveChangesAsync();
         }
 
         private int GetAuthUserId()

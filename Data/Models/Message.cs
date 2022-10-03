@@ -12,5 +12,6 @@
 
         public string Text { get; set; } = string.Empty;
         public DateTime TimeSent { get; set; }
+        public bool Seen { get; set; }
     }
 }
