@@ -91,8 +91,8 @@ namespace SocialMediaAPI.Data.Services
             dbContext.Verifications.RemoveRange(dbContext.Verifications.Where(v => v.UserId == foundUser.Id));
             if (foundUser.Verified == true)
             {
-                return "User verified";
                 dbContext.SaveChanges();
+                return "User verified";
             }
             foundUser.Verified = true;
             dbContext.SaveChanges();

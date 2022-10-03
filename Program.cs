@@ -59,6 +59,8 @@ builder.Services.AddCors(c =>
 });
 builder.Services.AddControllers().AddJsonOptions(x =>
                 x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+
+
 builder.Services.AddDbContext<AppDbContext>();
 
 builder.Services.AddTransient<UserService>();

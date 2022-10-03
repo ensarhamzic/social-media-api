@@ -30,6 +30,20 @@ namespace SocialMediaAPI.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("chats")]
+        public IActionResult GetChats()
+        {
+            try
+            {
+                var response = messageService.GetChats();
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
         
     }
 }
