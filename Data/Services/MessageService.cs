@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SocialMediaAPI.Data.Models;
+using SocialMediaAPI.Data.ViewModels;
 using System.Linq;
 using System.Security.Claims;
 
@@ -33,41 +34,30 @@ namespace SocialMediaAPI.Data.Services
         public object GetChats()
         {
             var userId = GetAuthUserId();
-            // get all messages that user sent or received
-            var messages = dbContext.Messages
-                .Where(m => m.FromUserId == userId || m.ToUserId == userId)
-                .Include(m => m.FromUser).Include(m => m.ToUser);
-
-            // group by sender id (remove duplicates)
-            var fromMessages = messages.GroupBy(m => m.FromUserId)
-                .Select(m => m.FirstOrDefault());
-
-            // group by receiver id (remove duplicates)
-            var toMessages = messages.GroupBy(m => m.ToUserId)
-                .Select(m => m.FirstOrDefault());
-
-            var hasOwnChat = messages.Any(m => m.FromUserId == userId && m.ToUserId == userId);
-
-            // extracts just users but only unique ones
-            List<User> chatUsers = new List<User>();
-            
-            foreach(var msg in fromMessages)
+            var user = dbContext.Users
+                .Include(u => u.ReceivedMessages).ThenInclude(m => m.FromUser)
+                .FirstOrDefault(u => u.Id == userId);
+            var receivedMessages = user.ReceivedMessages;
+            List<User> allChatUsers = new List<User>();
+            foreach(var msg in receivedMessages)
+                allChatUsers.Add(msg.FromUser);
+            List<UserChat> chatUsers = new List<UserChat>();
+            foreach(var usr in allChatUsers)
             {
-                if (msg == null) break;
-                // user sent message but not to himself
-                if (msg.FromUserId == userId && !hasOwnChat) continue;
-                chatUsers.Add(msg.FromUser);
+                if (chatUsers.Any(u => u.Id == usr.Id)) continue;
+                var isNewChat = receivedMessages.Any(m => m.FromUserId == usr.Id && !m.Seen);
+                var newUserChat = new UserChat() {
+                    Id = usr.Id,
+                    FirstName = usr.FirstName,
+                    LastName = usr.LastName,
+                    Email = usr.Email,
+                    Username = usr.Username,
+                    PictureURL = usr.PictureURL,
+                    NewChat = isNewChat,
+                };
+                chatUsers.Add(newUserChat);
             }
 
-            foreach(var msg in toMessages)
-            {
-                if (msg == null) break;
-                // Check if chat is already in list
-                if (chatUsers.Any(c => c.Id == msg.ToUser.Id)) continue;
-                // user received message but not to himself
-                if (msg.ToUserId == userId && !hasOwnChat) continue;
-                chatUsers.Add(msg.ToUser);
-            }
 
             return chatUsers;
         }
