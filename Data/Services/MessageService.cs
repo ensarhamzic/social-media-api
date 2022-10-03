@@ -69,12 +69,6 @@ namespace SocialMediaAPI.Data.Services
                 chatUsers.Add(msg.ToUser);
             }
 
-            var ownChat = dbContext.Messages.FirstOrDefault(m => m.FromUserId == userId && m.ToUserId == userId);
-            if(ownChat == null)
-            {
-
-            }
-
             return chatUsers;
         }
 
